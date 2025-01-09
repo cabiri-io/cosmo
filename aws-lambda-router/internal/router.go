@@ -45,7 +45,8 @@ func NewRouter(opts ...Option) (*core.Router, error) {
 
 	routerConfig, err := execution_config.FromFile(rc.RouterConfigPath)
 	if err != nil {
-		logger.Fatal("Could not read execution config", zap.Error(err), zap.String("path", rc.RouterConfigPath))
+		logger.Error("Could not read execution config", zap.Error(err), zap.String("path", rc.RouterConfigPath))
+		return nil, err
 	}
 
 	routerOpts := []core.Option{
@@ -60,12 +61,15 @@ func NewRouter(opts ...Option) (*core.Router, error) {
 
 	configYaml, err := config.LoadConfig(rc.ConfigPath, "")
 	if err != nil {
-		logger.Fatal("Could not load config from YAML", zap.Error(err), zap.String("path", rc.ConfigPath))
+		logger.Error("Could not load config from YAML", zap.Error(err), zap.String("path", rc.ConfigPath))
+		return nil, err
 	}
 
 	if configYaml != nil {
 		logger.Info("Using configuration from config.yaml")
 		cfg := &configYaml.Config
+
+		// Supports same configuration options as router/cmd/instance.go:NewRouter
 
 		routerOpts = append(routerOpts,
 			core.WithListenerAddr(cfg.ListenAddr),
@@ -229,7 +233,8 @@ func NewRouter(opts ...Option) (*core.Router, error) {
 
 	r, err := core.NewRouter(append(rc.RouterOpts, routerOpts...)...)
 	if err != nil {
-		logger.Fatal("Could not create router", zap.Error(err))
+		logger.Error("Could not create router", zap.Error(err))
+		return nil, err
 	}
 
 	return r, nil

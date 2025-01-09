@@ -38,3 +38,16 @@ func TestHandler(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, response)
 }
+
+func TestHandlerThrowsErrorWhenConfigFileIsInvalid(t *testing.T) {
+	logger, err := zap.NewProduction()
+	require.NoError(t, err)
+
+	r, err := NewRouter(
+		WithLogger(logger),
+		WithConfigFilePath("../config.test-invalid.yaml"),
+		WithRouterConfigPath("../router.json"),
+	)
+	require.Error(t, err)
+	require.Nil(t, r)
+}
