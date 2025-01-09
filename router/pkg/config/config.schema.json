@@ -824,7 +824,15 @@
                       "context_field": {
                         "type": "string",
                         "description": "The field name of the context from which to extract the value. The value is only extracted when a context is available otherwise the default value is used.",
-                        "enum": ["operation_service_names", "graphql_error_codes", "graphql_error_service_names", "operation_sha256", "operation_name", "operation_hash", "router_config_version"]
+                        "enum": [
+                          "operation_service_names",
+                          "graphql_error_codes",
+                          "graphql_error_service_names",
+                          "operation_sha256",
+                          "operation_name",
+                          "operation_hash",
+                          "router_config_version"
+                        ]
                       }
                     }
                   }
@@ -851,14 +859,14 @@
                   "default": false,
                   "description": "Enable the collection of metrics for the GraphQL operation router caches. The default value is false."
                 },
-                "engine_stats" : {
+                "engine_stats": {
                   "type": "object",
                   "additionalProperties": false,
                   "properties": {
                     "subscriptions": {
-                        "type": "boolean",
-                        "default": false,
-                        "description": "Enabling this will report additional engine metrics for WebSockets and SSE such as connections, subscriptions and triggers. The default value is false"
+                      "type": "boolean",
+                      "default": false,
+                      "description": "Enabling this will report additional engine metrics for WebSockets and SSE such as connections, subscriptions and triggers. The default value is false"
                     }
                   }
                 },
@@ -946,7 +954,7 @@
                   "default": false,
                   "description": "Enable the collection of metrics for the GraphQL operation router caches. The default value is false."
                 },
-                "engine_stats" : {
+                "engine_stats": {
                   "type": "object",
                   "additionalProperties": false,
                   "properties": {
@@ -2429,12 +2437,16 @@
           "type": "object",
           "description": "The configuration for the value from. The value from is used to extract a value from a request context and propagate it to subgraphs. This is currently only valid in requests",
           "additionalProperties": false,
-          "required": ["context_field"],
+          "oneOf": [{ "required": ["context_field"] }, { "required": ["auth_claim"] }],
           "properties": {
             "context_field": {
               "type": "string",
               "description": "The field name of the context from which to extract the value. The value is only extracted when a context is available otherwise the default value is used.",
               "enum": ["operation_name"]
+            },
+            "auth_claim": {
+              "type": "string",
+              "description": "The name of a claim from an authorized JWT from which to extract the value. The value is only extracted when a context is available otherwise the default value is used."
             }
           }
         }
