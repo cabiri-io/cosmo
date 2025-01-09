@@ -1,5 +1,16 @@
 # aws-lambda-router
 
+## Compiling `cabiri-io/cosmo` for testing
+
+If you want to test out a new binary of `aws-lambda-router` during development, you can use:
+
+```
+cd aws-lambda-router
+GOOS=linux make build
+```
+
+This will generate `aws-lambda-router/bootstrap`, which can then be used in an AWS Lambda function using the `provided.al2` runtime.
+
 <p align="center">
 <img width="550" src="cover.png"/>
 </p>
