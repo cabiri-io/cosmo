@@ -4,6 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
+	"os"
+	"time"
+
 	"github.com/akrylysov/algnhsa"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/wundergraph/cosmo/aws-lambda-router/internal"
@@ -12,9 +16,6 @@ import (
 	"github.com/wundergraph/cosmo/router/pkg/logging"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"net/http"
-	"os"
-	"time"
 )
 
 const (
@@ -29,6 +30,7 @@ var (
 	stage             = os.Getenv("STAGE")
 	graphApiToken     = os.Getenv("GRAPH_API_TOKEN")
 	httpPort          = os.Getenv("HTTP_PORT")
+	configFilePath    = os.Getenv("CONFIG_PATH")
 )
 
 func main() {
@@ -44,7 +46,8 @@ func main() {
 		}
 	}()
 
-	r := internal.NewRouter(
+	r, err := internal.NewRouter(
+		internal.WithConfigFilePath(configFilePath),
 		internal.WithGraphApiToken(graphApiToken),
 		internal.WithLogger(logger),
 		internal.WithRouterConfigPath(routerConfigPath),
@@ -63,6 +66,9 @@ func main() {
 			}),
 		),
 	)
+	if err != nil {
+		logger.Fatal("Could not initialise router", zap.Error(err))
+	}
 
 	svr, err := r.NewServer(ctx)
 	if err != nil {

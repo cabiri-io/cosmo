@@ -1,0 +1,17 @@
+# yaml-language-server: $schema=../../router/pkg/config/config.schema.json
+
+version: '1'
+
+authentication:
+  providers:
+    - name: Test Auth Service
+      jwks:
+        # Example JWKS - Google OIDC
+        url: https://www.googleapis.com/oauth2/v3/certs
+        refresh_interval: 5m
+headers:
+  all:
+    request:
+      - op: 'propagate'
+        matching: Authorization
+log_level: debug
