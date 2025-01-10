@@ -2,14 +2,15 @@ package core
 
 import (
 	"fmt"
+	"net/http"
+	"strconv"
+	"time"
+
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/wundergraph/cosmo/router/pkg/config"
 	"github.com/wundergraph/cosmo/router/pkg/logging"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"net/http"
-	"strconv"
-	"time"
 )
 
 // Context field names used to expose information about the operation being executed.
@@ -28,6 +29,7 @@ const (
 	ContextFieldOperationSha256            = "operation_sha256"
 	ContextFieldResponseErrorMessage       = "response_error_message"
 	ContextFieldRequestError               = "request_error"
+	ContextFieldAuthClaims                 = "auth_claims"
 )
 
 // Helper functions to create zap fields for custom attributes.
@@ -111,7 +113,7 @@ func GetLogFieldFromCustomAttribute(field config.CustomAttribute, req *requestCo
 }
 
 func getCustomDynamicAttributeValue(attribute *config.CustomDynamicAttribute, reqContext *requestContext, err any) interface{} {
-	if attribute == nil || attribute.ContextField == "" {
+	if attribute == nil || (attribute.ContextField == "" && attribute.AuthClaim == "") {
 		return ""
 	}
 
@@ -162,6 +164,13 @@ func getCustomDynamicAttributeValue(attribute *config.CustomDynamicAttribute, re
 		return reqContext.graphQLErrorServices
 	case ContextFieldGraphQLErrorCodes:
 		return reqContext.graphQLErrorCodes
+	}
+
+	if attribute.AuthClaim != "" {
+		claimVal := reqContext.Authentication().Claims()[attribute.AuthClaim]
+		if claimVal != nil {
+			return claimVal
+		}
 	}
 
 	return ""
