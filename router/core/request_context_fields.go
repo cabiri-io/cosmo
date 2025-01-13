@@ -166,7 +166,7 @@ func getCustomDynamicAttributeValue(attribute *config.CustomDynamicAttribute, re
 		return reqContext.graphQLErrorCodes
 	}
 
-	if attribute.AuthClaim != "" {
+	if attribute.AuthClaim != "" && reqContext.Authentication() != nil {
 		claimVal := reqContext.Authentication().Claims()[attribute.AuthClaim]
 		if claimVal != nil {
 			return claimVal

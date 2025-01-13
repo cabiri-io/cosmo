@@ -1007,6 +1007,10 @@ func TestSetHeaderRule(t *testing.T) {
 		originReq, err := http.NewRequest("POST", "http://localhost", nil)
 		assert.Nil(t, err)
 
+		originReq = originReq.WithContext(withRequestContext(originReq.Context(), &requestContext{
+			request: originReq.WithContext(authentication.NewContext(originReq.Context(), nil)),
+		}))
+
 		clientReq.Context()
 
 		updatedClientReq, _ := ht.OnOriginRequest(originReq, &requestContext{
