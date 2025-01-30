@@ -3,12 +3,14 @@ package internal
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/wundergraph/cosmo/router/core"
 	"github.com/wundergraph/cosmo/router/pkg/authentication"
 	"github.com/wundergraph/cosmo/router/pkg/config"
 	"github.com/wundergraph/cosmo/router/pkg/cors"
 	"github.com/wundergraph/cosmo/router/pkg/execution_config"
+	"github.com/wundergraph/cosmo/router/pkg/logging"
 	"github.com/wundergraph/cosmo/router/pkg/metric"
 	"github.com/wundergraph/cosmo/router/pkg/trace"
 	"go.uber.org/zap"
@@ -145,6 +147,57 @@ func NewRouter(opts ...Option) (*core.Router, error) {
 			core.WithClientHeader(cfg.ClientHeader),
 			core.WithCacheWarmupConfig(&cfg.CacheWarmup),
 		)
+
+		if cfg.AccessLogs.Enabled {
+			c := &core.AccessLogsConfig{
+				Attributes:         cfg.AccessLogs.Router.Fields,
+				SubgraphEnabled:    cfg.AccessLogs.Subgraphs.Enabled,
+				SubgraphAttributes: cfg.AccessLogs.Subgraphs.Fields,
+			}
+
+			if cfg.AccessLogs.Output.File.Enabled {
+				f, err := logging.NewLogFile(cfg.AccessLogs.Output.File.Path)
+				if err != nil {
+					return nil, fmt.Errorf("could not create log file: %w", err)
+				}
+				if cfg.AccessLogs.Buffer.Enabled {
+					bl, err := logging.NewJSONZapBufferedLogger(logging.BufferedLoggerOptions{
+						WS:            f,
+						BufferSize:    int(cfg.AccessLogs.Buffer.Size.Uint64()),
+						FlushInterval: cfg.AccessLogs.Buffer.FlushInterval,
+						Development:   cfg.DevelopmentMode,
+						Level:         zap.InfoLevel,
+						Pretty:        !cfg.JSONLog,
+					})
+					if err != nil {
+						return nil, fmt.Errorf("could not create buffered logger: %w", err)
+					}
+					c.Logger = bl.Logger
+				} else {
+					c.Logger = logging.NewZapAccessLogger(f, cfg.DevelopmentMode, !cfg.JSONLog)
+				}
+			} else if cfg.AccessLogs.Output.Stdout.Enabled {
+
+				if cfg.AccessLogs.Buffer.Enabled {
+					bl, err := logging.NewJSONZapBufferedLogger(logging.BufferedLoggerOptions{
+						WS:            os.Stdout,
+						BufferSize:    int(cfg.AccessLogs.Buffer.Size.Uint64()),
+						FlushInterval: cfg.AccessLogs.Buffer.FlushInterval,
+						Development:   cfg.DevelopmentMode,
+						Level:         zap.InfoLevel,
+						Pretty:        !cfg.JSONLog,
+					})
+					if err != nil {
+						return nil, fmt.Errorf("could not create buffered logger: %w", err)
+					}
+					c.Logger = bl.Logger
+				} else {
+					c.Logger = logging.NewZapAccessLogger(os.Stdout, cfg.DevelopmentMode, !cfg.JSONLog)
+				}
+			}
+
+			routerOpts = append(routerOpts, core.WithAccessLogs(c))
+		}
 
 		var authenticators []authentication.Authenticator
 		for i, auth := range cfg.Authentication.Providers {
