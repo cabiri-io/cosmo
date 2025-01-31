@@ -469,6 +469,7 @@ export const namespaces = pgTable(
     }),
     enableLinting: boolean('enable_linting').default(false).notNull(),
     enableGraphPruning: boolean('enable_graph_pruning').default(false).notNull(),
+    enableCacheWarming: boolean('enable_cache_warming').default(false).notNull(),
   },
   (t) => {
     return {
@@ -599,7 +600,7 @@ export const schemaVersion = pgTable(
   },
 );
 
-// https://github.com/kamilkisiela/graphql-inspector/blob/f3b9ed7e277f1a4928da7d0fdc212685ff77752a/packages/core/src/diff/changes/change.ts
+// https://github.com/kamilkisiela/graphql-inspector/blob/master/packages/core/src/diff/changes/change.ts
 export const schemaChangeTypeEnum = pgEnum('schema_change_type', [
   'FIELD_ARGUMENT_DESCRIPTION_CHANGED',
   'FIELD_ARGUMENT_DEFAULT_CHANGED',
@@ -653,6 +654,30 @@ export const schemaChangeTypeEnum = pgEnum('schema_change_type', [
   'TYPE_DESCRIPTION_ADDED',
   'UNION_MEMBER_REMOVED',
   'UNION_MEMBER_ADDED',
+  'DIRECTIVE_USAGE_UNION_MEMBER_ADDED',
+  'DIRECTIVE_USAGE_UNION_MEMBER_REMOVED',
+  'DIRECTIVE_USAGE_ENUM_ADDED',
+  'DIRECTIVE_USAGE_ENUM_REMOVED',
+  'DIRECTIVE_USAGE_ENUM_VALUE_ADDED',
+  'DIRECTIVE_USAGE_ENUM_VALUE_REMOVED',
+  'DIRECTIVE_USAGE_INPUT_OBJECT_ADDED',
+  'DIRECTIVE_USAGE_INPUT_OBJECT_REMOVED',
+  'DIRECTIVE_USAGE_FIELD_ADDED',
+  'DIRECTIVE_USAGE_FIELD_REMOVED',
+  'DIRECTIVE_USAGE_SCALAR_ADDED',
+  'DIRECTIVE_USAGE_SCALAR_REMOVED',
+  'DIRECTIVE_USAGE_OBJECT_ADDED',
+  'DIRECTIVE_USAGE_OBJECT_REMOVED',
+  'DIRECTIVE_USAGE_INTERFACE_ADDED',
+  'DIRECTIVE_USAGE_INTERFACE_REMOVED',
+  'DIRECTIVE_USAGE_ARGUMENT_DEFINITION_ADDED',
+  'DIRECTIVE_USAGE_ARGUMENT_DEFINITION_REMOVED',
+  'DIRECTIVE_USAGE_SCHEMA_ADDED',
+  'DIRECTIVE_USAGE_SCHEMA_REMOVED',
+  'DIRECTIVE_USAGE_FIELD_DEFINITION_ADDED',
+  'DIRECTIVE_USAGE_FIELD_DEFINITION_REMOVED',
+  'DIRECTIVE_USAGE_INPUT_FIELD_DEFINITION_ADDED',
+  'DIRECTIVE_USAGE_INPUT_FIELD_DEFINITION_REMOVED',
 ] as const);
 
 export const schemaVersionChangeAction = pgTable(
@@ -1992,6 +2017,39 @@ export const playgroundScripts = pgTable(
     return {
       organizationIdIndex: index('ps_organization_id_idx').on(t.organizationId),
       createdByIdIndex: index('ps_created_by_id_idx').on(t.createdById),
+    };
+  },
+);
+
+export const cacheWarmerOperations = pgTable(
+  'cache_warmer_operations', // cwo
+  {
+    id: uuid('id').notNull().primaryKey().defaultRandom(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    federatedGraphId: uuid('federated_graph_id')
+      .notNull()
+      .references(() => federatedGraphs.id, { onDelete: 'cascade' }),
+    operationContent: text('operation_content'),
+    operationHash: text('operation_hash'),
+    operationPersistedID: text('operation_persisted_id'),
+    operationName: text('operation_name'),
+    clientName: text('client_name'),
+    clientVersion: text('client_version'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    planningTime: real('planning_time'),
+    // is true if the operation is added by the user
+    isManuallyAdded: boolean('is_manually_added').default(false).notNull(),
+    createdById: uuid('created_by_id').references(() => users.id, {
+      onDelete: 'set null',
+    }),
+  },
+  (t) => {
+    return {
+      organizationIdIndex: index('cwo_organization_id_idx').on(t.organizationId),
+      federatedGraphId: index('cwo_federated_graph_id_idx').on(t.federatedGraphId),
+      createdByIdIndex: index('cwo_created_by_id_idx').on(t.createdById),
     };
   },
 );

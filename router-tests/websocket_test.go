@@ -75,10 +75,9 @@ func TestWebSockets(t *testing.T) {
 		authServer, err := jwks.NewServer(t)
 		require.NoError(t, err)
 		t.Cleanup(authServer.Close)
-		tokenDecoder, _ := authentication.NewJwksTokenDecoder(NewContextWithCancel(t), zap.NewNop(), authServer.JWKSURL(), time.Second*5)
+		tokenDecoder, _ := authentication.NewJwksTokenDecoder(NewContextWithCancel(t), zap.NewNop(), []authentication.JWKSConfig{toJWKSConfig(authServer.JWKSURL(), time.Second*5)})
 		authOptions := authentication.HttpHeaderAuthenticatorOptions{
 			Name:         jwksName,
-			URL:          authServer.JWKSURL(),
 			TokenDecoder: tokenDecoder,
 		}
 		authenticator, err := authentication.NewHttpHeaderAuthenticator(authOptions)
@@ -125,10 +124,9 @@ func TestWebSockets(t *testing.T) {
 		authServer, err := jwks.NewServer(t)
 		require.NoError(t, err)
 		t.Cleanup(authServer.Close)
-		tokenDecoder, _ := authentication.NewJwksTokenDecoder(NewContextWithCancel(t), zap.NewNop(), authServer.JWKSURL(), time.Second*5)
+		tokenDecoder, _ := authentication.NewJwksTokenDecoder(NewContextWithCancel(t), zap.NewNop(), []authentication.JWKSConfig{toJWKSConfig(authServer.JWKSURL(), time.Second*5)})
 		authOptions := authentication.HttpHeaderAuthenticatorOptions{
 			Name:         jwksName,
-			URL:          authServer.JWKSURL(),
 			TokenDecoder: tokenDecoder,
 		}
 		authenticator, err := authentication.NewHttpHeaderAuthenticator(authOptions)
@@ -175,10 +173,9 @@ func TestWebSockets(t *testing.T) {
 		authServer, err := jwks.NewServer(t)
 		require.NoError(t, err)
 		t.Cleanup(authServer.Close)
-		tokenDecoder, _ := authentication.NewJwksTokenDecoder(NewContextWithCancel(t), zap.NewNop(), authServer.JWKSURL(), time.Second*5)
+		tokenDecoder, _ := authentication.NewJwksTokenDecoder(NewContextWithCancel(t), zap.NewNop(), []authentication.JWKSConfig{toJWKSConfig(authServer.JWKSURL(), time.Second*5)})
 		authOptions := authentication.HttpHeaderAuthenticatorOptions{
 			Name:         jwksName,
-			URL:          authServer.JWKSURL(),
 			TokenDecoder: tokenDecoder,
 		}
 		authenticator, err := authentication.NewHttpHeaderAuthenticator(authOptions)
@@ -186,7 +183,8 @@ func TestWebSockets(t *testing.T) {
 		authenticators := []authentication.Authenticator{authenticator}
 
 		testenv.Run(t, &testenv.Config{
-			EnableNats: true,
+			RouterConfigJSONTemplate: testenv.ConfigWithEdfsNatsJSONTemplate,
+			EnableNats:               true,
 			RouterOptions: []core.Option{
 				core.WithAccessController(core.NewAccessController(authenticators, false)),
 				core.WithAuthorizationConfig(&config.AuthorizationConfiguration{
@@ -234,10 +232,9 @@ func TestWebSockets(t *testing.T) {
 		authServer, err := jwks.NewServer(t)
 		require.NoError(t, err)
 		t.Cleanup(authServer.Close)
-		tokenDecoder, _ := authentication.NewJwksTokenDecoder(NewContextWithCancel(t), zap.NewNop(), authServer.JWKSURL(), time.Second*5)
+		tokenDecoder, _ := authentication.NewJwksTokenDecoder(NewContextWithCancel(t), zap.NewNop(), []authentication.JWKSConfig{toJWKSConfig(authServer.JWKSURL(), time.Second*5)})
 		authOptions := authentication.HttpHeaderAuthenticatorOptions{
 			Name:         jwksName,
-			URL:          authServer.JWKSURL(),
 			TokenDecoder: tokenDecoder,
 		}
 		authenticator, err := authentication.NewHttpHeaderAuthenticator(authOptions)
@@ -245,7 +242,8 @@ func TestWebSockets(t *testing.T) {
 		authenticators := []authentication.Authenticator{authenticator}
 
 		testenv.Run(t, &testenv.Config{
-			EnableNats: true,
+			RouterConfigJSONTemplate: testenv.ConfigWithEdfsNatsJSONTemplate,
+			EnableNats:               true,
 			RouterOptions: []core.Option{
 				core.WithAccessController(core.NewAccessController(authenticators, false)),
 				core.WithAuthorizationConfig(&config.AuthorizationConfiguration{
@@ -292,7 +290,7 @@ func TestWebSockets(t *testing.T) {
 		authServer, err := jwks.NewServer(t)
 		require.NoError(t, err)
 		t.Cleanup(authServer.Close)
-		tokenDecoder, _ := authentication.NewJwksTokenDecoder(NewContextWithCancel(t), zap.NewNop(), authServer.JWKSURL(), time.Second*5)
+		tokenDecoder, _ := authentication.NewJwksTokenDecoder(NewContextWithCancel(t), zap.NewNop(), []authentication.JWKSConfig{toJWKSConfig(authServer.JWKSURL(), time.Second*5)})
 		authOptions := authentication.WebsocketInitialPayloadAuthenticatorOptions{
 			TokenDecoder: tokenDecoder,
 			Key:          "Authorization",
@@ -302,7 +300,8 @@ func TestWebSockets(t *testing.T) {
 		authenticators := []authentication.Authenticator{authenticator}
 
 		testenv.Run(t, &testenv.Config{
-			EnableNats: true,
+			RouterConfigJSONTemplate: testenv.ConfigWithEdfsNatsJSONTemplate,
+			EnableNats:               true,
 			ModifyWebsocketConfiguration: func(cfg *config.WebSocketConfiguration) {
 				cfg.Authentication.FromInitialPayload.Enabled = true
 				cfg.Enabled = true
@@ -353,7 +352,7 @@ func TestWebSockets(t *testing.T) {
 		authServer, err := jwks.NewServer(t)
 		require.NoError(t, err)
 		t.Cleanup(authServer.Close)
-		tokenDecoder, _ := authentication.NewJwksTokenDecoder(NewContextWithCancel(t), zap.NewNop(), authServer.JWKSURL(), time.Second*5)
+		tokenDecoder, _ := authentication.NewJwksTokenDecoder(NewContextWithCancel(t), zap.NewNop(), []authentication.JWKSConfig{toJWKSConfig(authServer.JWKSURL(), time.Second*5)})
 		authOptions := authentication.WebsocketInitialPayloadAuthenticatorOptions{
 			TokenDecoder: tokenDecoder,
 			Key:          "Authorization",
@@ -402,7 +401,7 @@ func TestWebSockets(t *testing.T) {
 		authServer, err := jwks.NewServer(t)
 		require.NoError(t, err)
 		t.Cleanup(authServer.Close)
-		tokenDecoder, _ := authentication.NewJwksTokenDecoder(NewContextWithCancel(t), zap.NewNop(), authServer.JWKSURL(), time.Second*5)
+		tokenDecoder, _ := authentication.NewJwksTokenDecoder(NewContextWithCancel(t), zap.NewNop(), []authentication.JWKSConfig{toJWKSConfig(authServer.JWKSURL(), time.Second*5)})
 		authOptions := authentication.WebsocketInitialPayloadAuthenticatorOptions{
 			TokenDecoder: tokenDecoder,
 			Key:          "Authorization",
@@ -453,7 +452,8 @@ func TestWebSockets(t *testing.T) {
 		require.NoError(t, err)
 
 		testenv.Run(t, &testenv.Config{
-			EnableNats: true,
+			RouterConfigJSONTemplate: testenv.ConfigWithEdfsNatsJSONTemplate,
+			EnableNats:               true,
 			ModifyWebsocketConfiguration: func(cfg *config.WebSocketConfiguration) {
 				cfg.Authentication.FromInitialPayload.Enabled = true
 				cfg.Authentication.FromInitialPayload.ExportToken.Enabled = true
@@ -1726,7 +1726,8 @@ func TestWebSockets(t *testing.T) {
 		t.Parallel()
 
 		testenv.Run(t, &testenv.Config{
-			EnableNats: true,
+			RouterConfigJSONTemplate: testenv.ConfigWithEdfsNatsJSONTemplate,
+			EnableNats:               true,
 		}, func(t *testing.T, xEnv *testenv.Environment) {
 
 			conn := xEnv.InitGraphQLWebSocketConnection(nil, nil, nil)

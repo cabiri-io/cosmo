@@ -160,6 +160,11 @@
   },
   "ListenAddr": "localhost:3002",
   "ControlplaneURL": "https://cosmo-cp.wundergraph.com",
+  "PlaygroundConfig": {
+    "Enabled": true,
+    "Path": "/",
+    "ConcurrencyLimit": 10
+  },
   "PlaygroundEnabled": true,
   "IntrospectionEnabled": true,
   "QueryPlansEnabled": true,
@@ -168,13 +173,19 @@
   "ShutdownDelay": 60000000000,
   "GracePeriod": 30000000000,
   "PollInterval": 10000000000,
+  "PollJitter": 5000000000,
   "HealthCheckPath": "/health",
   "ReadinessCheckPath": "/health/ready",
   "LivenessCheckPath": "/health/live",
   "GraphQLPath": "/graphql",
   "PlaygroundPath": "/",
   "Authentication": {
-    "Providers": null
+    "JWT": {
+      "JWKS": null,
+      "HeaderName": "Authorization",
+      "HeaderValuePrefix": "Bearer",
+      "HeaderSources": null
+    }
   },
   "Authorization": {
     "RequireAuthentication": false,
@@ -188,14 +199,20 @@
       "Burst": 10,
       "Period": 1000000000,
       "RejectExceedingRequests": false,
-      "RejectStatusCode": 200
+      "RejectStatusCode": 200,
+      "HideStatsFromResponseExtension": false
     },
     "Storage": {
-      "Url": "redis://localhost:6379",
+      "URLs": null,
+      "ClusterEnabled": false,
       "KeyPrefix": "cosmo_rate_limit"
     },
     "Debug": false,
-    "KeySuffixExpression": ""
+    "KeySuffixExpression": "",
+    "ErrorExtensionCode": {
+      "Enabled": true,
+      "Code": "RATE_LIMIT_EXCEEDED"
+    }
   },
   "LocalhostFallbackInsideDocker": true,
   "CDN": {
@@ -211,8 +228,9 @@
   },
   "CacheWarmup": {
     "Enabled": false,
-    "Source": "filesystem",
-    "Path": "",
+    "Source": {
+      "Filesystem": null
+    },
     "Workers": 8,
     "ItemsPerSecond": 50,
     "Timeout": 30000000000
@@ -264,7 +282,7 @@
     "EnableSingleFlight": true,
     "EnableRequestTracing": true,
     "EnableExecutionPlanCacheResponseHeader": false,
-    "MaxConcurrentResolvers": 32,
+    "MaxConcurrentResolvers": 1024,
     "EnableNetPoll": true,
     "WebSocketClientPollTimeout": 1000000000,
     "WebSocketClientConnBufferSize": 128,
