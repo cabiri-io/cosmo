@@ -7,7 +7,7 @@ toolchain go1.23.4
 require (
 	github.com/akrylysov/algnhsa v1.1.0
 	github.com/aws/aws-lambda-go v1.43.0
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	github.com/wundergraph/cosmo/router v0.0.0-20241115174502-7156536a93bf
 	go.uber.org/zap v1.27.0
 )
@@ -26,7 +26,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cloudflare/backoff v0.0.0-20161212185259-647f3cdfc87a // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/dgraph-io/ristretto v0.1.2-0.20240723054643-f5997484152c // indirect
+	github.com/dgraph-io/ristretto/v2 v2.1.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/expr-lang/expr v1.16.9 // indirect
@@ -97,7 +97,7 @@ require (
 	github.com/twmb/franz-go v1.16.1 // indirect
 	github.com/twmb/franz-go/pkg/kmsg v1.7.0 // indirect
 	github.com/wundergraph/astjson v0.0.0-20250106123708-be463c97e083 // indirect
-	github.com/wundergraph/graphql-go-tools/v2 v2.0.0-rc.138.0.20250106145350-20e4f82cea6b // indirect
+	github.com/wundergraph/graphql-go-tools/v2 v2.0.0-rc.145 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.46.1 // indirect
 	go.opentelemetry.io/contrib/propagators/b3 v1.23.0 // indirect

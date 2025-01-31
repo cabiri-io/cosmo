@@ -56,16 +56,25 @@
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["url", "id"],
+            "required": ["urls", "id"],
             "additionalProperties": false,
             "properties": {
               "id": {
                 "type": "string",
                 "description": "The ID of the redis provider. The ID is used to identify the storage provider in the configuration."
               },
-              "url": {
-                "type": "string",
-                "description": "The URL of the redis storage. The URL is specified as a string with the format 'scheme://host:port, with auth included if necessary'."
+              "urls": {
+                "type": "array",
+                "description": "The cluster connection URLs. The values are specified as a string with the format 'scheme://host:port'. If cluster enabled, will use these urls for a cluster connection. If cluster is not enabled, we will just select the first URL provided.",
+                "default": [],
+                "items": {
+                  "type": "string"
+                }
+              },
+              "cluster_enabled": {
+                "type": "boolean",
+                "description": "Enable Redis Cluster connection, using the supplied URLs.",
+                "default": false
               }
             }
           }
@@ -824,7 +833,15 @@
                       "context_field": {
                         "type": "string",
                         "description": "The field name of the context from which to extract the value. The value is only extracted when a context is available otherwise the default value is used.",
-                        "enum": ["operation_service_names", "graphql_error_codes", "graphql_error_service_names", "operation_sha256", "operation_name", "operation_hash", "router_config_version"]
+                        "enum": [
+                          "operation_service_names",
+                          "graphql_error_codes",
+                          "graphql_error_service_names",
+                          "operation_sha256",
+                          "operation_name",
+                          "operation_hash",
+                          "router_config_version"
+                        ]
                       }
                     }
                   }
@@ -851,14 +868,14 @@
                   "default": false,
                   "description": "Enable the collection of metrics for the GraphQL operation router caches. The default value is false."
                 },
-                "engine_stats" : {
+                "engine_stats": {
                   "type": "object",
                   "additionalProperties": false,
                   "properties": {
                     "subscriptions": {
-                        "type": "boolean",
-                        "default": false,
-                        "description": "Enabling this will report additional engine metrics for WebSockets and SSE such as connections, subscriptions and triggers. The default value is false"
+                      "type": "boolean",
+                      "default": false,
+                      "description": "Enabling this will report additional engine metrics for WebSockets and SSE such as connections, subscriptions and triggers. The default value is false"
                     }
                   }
                 },
@@ -946,7 +963,7 @@
                   "default": false,
                   "description": "Enable the collection of metrics for the GraphQL operation router caches. The default value is false."
                 },
-                "engine_stats" : {
+                "engine_stats": {
                   "type": "object",
                   "additionalProperties": false,
                   "properties": {
@@ -1067,10 +1084,36 @@
       "default": "https://cosmo-cp.wundergraph.com",
       "format": "http-url"
     },
+    "playground": {
+      "type": "object",
+      "description": "The configuration for the playground. The playground is a web-based GraphQL IDE that allows you to interact with the GraphQL API.",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable the GraphQL Playground. The GraphQL Playground is a web-based GraphQL IDE that allows you to interact with the GraphQL API. The default value is true. If the value is false, the GraphQL Playground is disabled.",
+          "default": true
+        },
+        "path": {
+          "type": "string",
+          "format": "x-uri",
+          "default": "/",
+          "description": "The path of the GraphQL Playground. The GraphQL Playground is a web-based GraphQL IDE that allows you to interact with the GraphQL API. The default value is '/'."
+        },
+        "concurrency_limit": {
+          "type": "integer",
+          "description": "The concurrency limit for loading the playground. This shouldn't impact normal usage.",
+          "default": 10,
+          "minimum": 1
+        }
+      }
+    },
     "playground_enabled": {
       "type": "boolean",
       "description": "Enable the GraphQL Playground. The GraphQL Playground is a web-based GraphQL IDE that allows you to interact with the GraphQL API. The default value is true. If the value is false, the GraphQL Playground is disabled.",
-      "default": true
+      "default": true,
+      "deprecated": true,
+      "deprecationMessage": "playground_enabled is deprecated. Please use the playground.enabled configuration instead."
     },
     "introspection_enabled": {
       "type": "boolean",
@@ -1115,6 +1158,14 @@
         "minimum": "5s"
       }
     },
+    "poll_jitter": {
+      "type": "string",
+      "description": "A duration maximum for jitter added to the polling interval. The period is specified as a string with a number and a unit, e.g. 10ms, 1s, 1m, 1h. The supported units are 'ms', 's', 'm', 'h'.",
+      "default": "5s",
+      "duration": {
+        "minimum": "0s"
+      }
+    },
     "health_check_path": {
       "type": "string",
       "default": "/health",
@@ -1143,7 +1194,9 @@
       "type": "string",
       "format": "x-uri",
       "default": "/",
-      "description": "The path of the GraphQL Playground. The GraphQL Playground is a web-based GraphQL IDE that allows you to interact with the GraphQL API. The default value is '/'."
+      "description": "The path of the GraphQL Playground. The GraphQL Playground is a web-based GraphQL IDE that allows you to interact with the GraphQL API. The default value is '/'.",
+      "deprecated": true,
+      "deprecationMessage": "playground_path is deprecated. Please use the playground.path configuration instead."
     },
     "file_upload": {
       "type": "object",
@@ -1196,93 +1249,13 @@
         "all": {
           "type": "object",
           "description": "The configuration for all subgraphs. The configuration is used to configure the traffic shaping for all subgraphs.",
-          "additionalProperties": false,
-          "properties": {
-            "request_timeout": {
-              "type": "string",
-              "duration": {
-                "minimum": "1s"
-              },
-              "description": "The request timeout. The period is specified as a string with a number and a unit, e.g. 10ms, 1s, 1m, 1h. The supported units are 'ms', 's', 'm', 'h'."
-            },
-            "dial_timeout": {
-              "type": "string",
-              "format": "go-duration",
-              "description": "The dial timeout. The period is specified as a string with a number and a unit, e.g. 10ms, 1s, 1m, 1h. The supported units are 'ms', 's', 'm', 'h'."
-            },
-            "tls_handshake_timeout": {
-              "type": "string",
-              "format": "go-duration",
-              "description": "The TLS handshake timeout. The period is specified as a string with a number and a unit, e.g. 10ms, 1s, 1m, 1h. The supported units are 'ms', 's', 'm', 'h'."
-            },
-            "response_header_timeout": {
-              "type": "string",
-              "format": "go-duration",
-              "description": "The response header timeout. The period is specified as a string with a number and a unit, e.g. 10ms, 1s, 1m, 1h. The supported units are 'ms', 's', 'm', 'h'."
-            },
-            "expect_continue_timeout": {
-              "type": "string",
-              "format": "go-duration",
-              "description": "The expect continue timeout. The period is specified as a string with a number and a unit, e.g. 10ms, 1s, 1m, 1h. The supported units are 'ms', 's', 'm', 'h'."
-            },
-            "keep_alive_idle_timeout": {
-              "type": "string",
-              "format": "go-duration",
-              "description": "The keep alive idle timeout. The period is specified as a string with a number and a unit, e.g. 10ms, 1s, 1m, 1h. The supported units are 'ms', 's', 'm', 'h'."
-            },
-            "keep_alive_probe_interval": {
-              "type": "string",
-              "duration": {
-                "minimum": "5s"
-              },
-              "description": "The keep alive probe interval. The period is specified as a string with a number and a unit, e.g. 10ms, 1s, 1m, 1h. The supported units are 'ms', 's', 'm', 'h'."
-            },
-            "retry": {
-              "type": "object",
-              "description": "The retry configuration. The retry configuration is used to configure the retry behavior for the subgraphs requests. See https://cosmo-docs.wundergraph.com/router/traffic-shaping#automatic-retry for more information.",
-              "additionalProperties": false,
-              "properties": {
-                "enabled": {
-                  "type": "boolean"
-                },
-                "algorithm": {
-                  "type": "string",
-                  "description": "The algorithm used to calculate the retry interval. The supported algorithms are 'backoff_jitter'.",
-                  "enum": ["backoff_jitter"]
-                },
-                "max_attempts": {
-                  "type": "integer",
-                  "default": 5,
-                  "minimum": 1,
-                  "description": "The maximum number of attempts. The default value is 5."
-                },
-                "interval": {
-                  "type": "string",
-                  "format": "go-duration",
-                  "default": "3s",
-                  "description": "The time duration between each retry attempt. Increase with every retry. The period is specified as a string with a number and a unit, e.g. 10ms, 1s, 1m, 1h. The supported units are 'ms', 's', 'm', 'h'."
-                },
-                "max_duration": {
-                  "type": "string",
-                  "format": "go-duration",
-                  "default": "10s",
-                  "description": "The maximum allowable duration between retries (random). The period is specified as a string with a number and a unit, e.g. 10ms, 1s, 1m, 1h. The supported units are 'ms', 's', 'm', 'h'."
-                }
-              }
-            }
-          }
+          "$ref": "#/definitions/traffic_shaping_subgraph_request_rule"
         },
         "subgraphs": {
           "type": "object",
           "description": "The configuration to control traffic shaping for specific subgraphs.",
           "additionalProperties": {
-            "request_timeout": {
-              "type": "string",
-              "duration": {
-                "minimum": "1s"
-              },
-              "description": "The request timeout. The period is specified as a string with a number and a unit, e.g. 10ms, 1s, 1m, 1h. The supported units are 'ms', 's', 'm', 'h'."
-            }
+            "$ref": "#/definitions/traffic_shaping_subgraph_request_rule"
           }
         }
       }
@@ -1299,8 +1272,12 @@
               "type": "array",
               "items": {
                 "oneOf": [
-                  { "$ref": "#/definitions/traffic_shaping_header_rule" },
-                  { "$ref": "#/definitions/set_header_rule" }
+                  {
+                    "$ref": "#/definitions/traffic_shaping_header_rule"
+                  },
+                  {
+                    "$ref": "#/definitions/set_header_rule"
+                  }
                 ]
               }
             },
@@ -1308,8 +1285,12 @@
               "type": "array",
               "items": {
                 "oneOf": [
-                  { "$ref": "#/definitions/traffic_shaping_header_response_rule" },
-                  { "$ref": "#/definitions/set_header_rule" }
+                  {
+                    "$ref": "#/definitions/traffic_shaping_header_response_rule"
+                  },
+                  {
+                    "$ref": "#/definitions/set_header_rule"
+                  }
                 ]
               }
             }
@@ -1325,8 +1306,12 @@
                 "type": "array",
                 "items": {
                   "oneOf": [
-                    { "$ref": "#/definitions/traffic_shaping_header_rule" },
-                    { "$ref": "#/definitions/set_header_rule" }
+                    {
+                      "$ref": "#/definitions/traffic_shaping_header_rule"
+                    },
+                    {
+                      "$ref": "#/definitions/set_header_rule"
+                    }
                   ]
                 }
               },
@@ -1334,8 +1319,12 @@
                 "type": "array",
                 "items": {
                   "oneOf": [
-                    { "$ref": "#/definitions/traffic_shaping_header_response_rule" },
-                    { "$ref": "#/definitions/set_header_rule" }
+                    {
+                      "$ref": "#/definitions/traffic_shaping_header_response_rule"
+                    },
+                    {
+                      "$ref": "#/definitions/set_header_rule"
+                    }
                   ]
                 }
               }
@@ -1396,17 +1385,14 @@
       "description": "The configuration for the authentication. The authentication is used to authenticate the incoming requests. We currently support JWK (JSON Web Key) authentication.",
       "additionalProperties": false,
       "properties": {
-        "providers": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "name": {
-                "type": "string",
-                "description": "The name of the authentication provider. The name is used to identify the provider in the configuration."
-              },
-              "jwks": {
+        "jwt": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "jwks": {
+              "type": "array",
+              "additionalProperties": false,
+              "items": {
                 "type": "object",
                 "additionalProperties": false,
                 "properties": {
@@ -1415,20 +1401,12 @@
                     "description": "The URL of the JWKs. The JWKs are used to verify the JWT (JSON Web Token). The URL is specified as a string with the format 'scheme://host:port'.",
                     "format": "http-url"
                   },
-                  "header_names": {
+                  "algorithms": {
                     "type": "array",
-                    "description": "The names of the headers. The headers are used to extract the token from the request. The default value is 'Authorization'",
-                    "default": ["Authorization"],
+                    "description": "The allowed algorithms for the keys that are retrieved from the JWKs. An empty list means that all algorithms are allowed.",
                     "items": {
-                      "type": "string"
-                    }
-                  },
-                  "header_value_prefixes": {
-                    "type": "array",
-                    "description": "The prefixes of the header values. The prefixes are used to extract the token from the header value. The default value is 'Bearer'",
-                    "default": ["Bearer"],
-                    "items": {
-                      "type": "string"
+                      "type": "string",
+                      "enum": ["HS256", "HS384", "HS512", "RS256", "RS384", "RS512", "ES256", "ES384", "ES512", "PS256", "PS384", "PS512", "EdDSA"]
                     }
                   },
                   "refresh_interval": {
@@ -1443,7 +1421,45 @@
                 "required": ["url"]
               }
             },
-            "required": ["name"]
+            "header_name": {
+              "type": "string",
+              "description": "The name of the header. The header is used to extract the token from the request. The default value is 'Authorization'.",
+              "default": "Authorization"
+            },
+            "header_value_prefix": {
+              "type": "string",
+              "description": "The prefix of the header value. The prefix is used to extract the token from the header value. The default value is 'Bearer'.",
+              "default": "Bearer"
+            },
+            "header_sources": {
+              "type": "array",
+              "description": "Additional sources for the token. The sources are used to extract the token from the request.",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "description": "The type of the source. The only currently supported type is 'header'.",
+                    "enum": ["header"]
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "The name of the header. The header is used to extract the token from the request.",
+                    "format": "http-header",
+                    "examples": ["X-Authorization"]
+                  },
+                  "value_prefixes": {
+                    "type": "array",
+                    "description": "The prefixes of the header value. The prefixes are used to extract the token from the header value.",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": ["type", "name"]
+              }
+            }
           }
         }
       }
@@ -1504,6 +1520,11 @@
               "type": "integer",
               "description": "The status code to return when the request is rejected. The default value is 200 (OK) as we're returning a well formed GraphQL response.",
               "default": 200
+            },
+            "hide_stats_from_response_extension": {
+              "type": "boolean",
+              "default": false,
+              "description": "Hide the rate limit stats from the response extension. If the value is true, the rate limit stats are not included in the response extension."
             }
           },
           "required": ["rate", "burst", "period"]
@@ -1511,12 +1532,20 @@
         "storage": {
           "type": "object",
           "additionalProperties": false,
+          "required": ["urls"],
           "properties": {
-            "url": {
-              "type": "string",
-              "description": "The connection URL. The value is specified as a string with the format 'scheme://host:port'.",
-              "default": "redis://localhost:6379",
-              "format": "url"
+            "cluster_enabled": {
+              "type": "boolean",
+              "description": "Enable Redis Cluster connection, using the supplied URLs.",
+              "default": false
+            },
+            "urls": {
+              "type": "array",
+              "description": "The Redis connection URLs. The values are specified as a string with the format 'scheme://host:port'. If cluster is enabled, will use them to instantiate a cluster connection. f",
+              "default": [],
+              "items": {
+                "type": "string"
+              }
             },
             "key_prefix": {
               "type": "string",
@@ -1532,6 +1561,23 @@
         "key_suffix_expression": {
           "type": "string",
           "description": "The expression to define a key suffix for the rate limit, e.g. by using request headers, claims, or a combination of both with a fallback strategy. The expression is specified as a string and needs to evaluate to a string. Please see https://expr-lang.org/ for more information."
+        },
+        "error_extension_code": {
+          "type": "object",
+          "description": "If enabled, a code will be added to the extensions.code field of error objects related to rate limiting. This allows clients to easily identify if an error happened due to rate limiting.",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true,
+              "description": "Enable the error extension code for rate limiting."
+            },
+            "code": {
+              "type": "string",
+              "description": "The error extension code for the rate limit.",
+              "default": "RATE_LIMIT_EXCEEDED"
+            }
+          }
         }
       }
     },
@@ -1708,9 +1754,24 @@
           "default": false
         },
         "source": {
-          "type": "string",
-          "description": "The source of the cache warmup items can be filesystem, cdn (Cosmo), or s3.",
-          "enum": ["filesystem"]
+          "type": "object",
+          "description": "The source of the cache warmup items. Only one can be specified. If empty, the cache warmup source is the Cosmo CDN and it requires a graph to be set.",
+          "additionalProperties": false,
+          "properties": {
+            "filesystem": {
+              "type": "object",
+              "description": "The filesystem source of the cache warmup items.",
+              "additionalProperties": false,
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "description": "The path to the directory containing the cache warmup items.",
+                  "format": "file-path"
+                }
+              }
+            }
+          },
+          "oneOf": [{ "required": ["filesystem"] }]
         },
         "workers": {
           "type": "integer",
@@ -1728,22 +1789,6 @@
           "default": "30s",
           "duration": {
             "minimum": "1s"
-          }
-        },
-        "if": {
-          "properties": {
-            "source": {
-              "const": "filesystem"
-            }
-          }
-        },
-        "then": {
-          "properties": {
-            "path": {
-              "type": "string",
-              "description": "The path to the directory containing the cache warmup items.",
-              "format": "file-path"
-            }
           }
         }
       }
@@ -2099,8 +2144,8 @@
         },
         "max_concurrent_resolvers": {
           "type": "integer",
-          "description": "The maximum number of concurrent resolvers.",
-          "default": 32
+          "description": "The maximum number of concurrent resolvers. The higher the number, the more requests can be processed in parallel but at the cost of more memory usage.",
+          "default": 1024
         },
         "enable_net_poll": {
           "type": "boolean",
@@ -2331,6 +2376,85 @@
     }
   },
   "definitions": {
+    "traffic_shaping_subgraph_request_rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "The configuration for all subgraphs. The configuration is used to configure the traffic shaping for all subgraphs.",
+      "properties": {
+        "request_timeout": {
+          "type": "string",
+          "duration": {
+            "minimum": "1s"
+          },
+          "description": "The request timeout. The period is specified as a string with a number and a unit, e.g. 10ms, 1s, 1m, 1h. The supported units are 'ms', 's', 'm', 'h'."
+        },
+        "dial_timeout": {
+          "type": "string",
+          "format": "go-duration",
+          "description": "The dial timeout. The period is specified as a string with a number and a unit, e.g. 10ms, 1s, 1m, 1h. The supported units are 'ms', 's', 'm', 'h'."
+        },
+        "tls_handshake_timeout": {
+          "type": "string",
+          "format": "go-duration",
+          "description": "The TLS handshake timeout. The period is specified as a string with a number and a unit, e.g. 10ms, 1s, 1m, 1h. The supported units are 'ms', 's', 'm', 'h'."
+        },
+        "response_header_timeout": {
+          "type": "string",
+          "format": "go-duration",
+          "description": "The response header timeout. The period is specified as a string with a number and a unit, e.g. 10ms, 1s, 1m, 1h. The supported units are 'ms', 's', 'm', 'h'."
+        },
+        "expect_continue_timeout": {
+          "type": "string",
+          "format": "go-duration",
+          "description": "The expect continue timeout. The period is specified as a string with a number and a unit, e.g. 10ms, 1s, 1m, 1h. The supported units are 'ms', 's', 'm', 'h'."
+        },
+        "keep_alive_idle_timeout": {
+          "type": "string",
+          "format": "go-duration",
+          "description": "The keep alive idle timeout. The period is specified as a string with a number and a unit, e.g. 10ms, 1s, 1m, 1h. The supported units are 'ms', 's', 'm', 'h'."
+        },
+        "keep_alive_probe_interval": {
+          "type": "string",
+          "duration": {
+            "minimum": "5s"
+          },
+          "description": "The keep alive probe interval. The period is specified as a string with a number and a unit, e.g. 10ms, 1s, 1m, 1h. The supported units are 'ms', 's', 'm', 'h'."
+        },
+        "retry": {
+          "type": "object",
+          "description": "The retry configuration. The retry configuration is used to configure the retry behavior for the subgraphs requests. See https://cosmo-docs.wundergraph.com/router/traffic-shaping#automatic-retry for more information.",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "algorithm": {
+              "type": "string",
+              "description": "The algorithm used to calculate the retry interval. The supported algorithms are 'backoff_jitter'.",
+              "enum": ["backoff_jitter"]
+            },
+            "max_attempts": {
+              "type": "integer",
+              "default": 5,
+              "minimum": 1,
+              "description": "The maximum number of attempts. The default value is 5."
+            },
+            "interval": {
+              "type": "string",
+              "format": "go-duration",
+              "default": "3s",
+              "description": "The time duration between each retry attempt. Increase with every retry. The period is specified as a string with a number and a unit, e.g. 10ms, 1s, 1m, 1h. The supported units are 'ms', 's', 'm', 'h'."
+            },
+            "max_duration": {
+              "type": "string",
+              "format": "go-duration",
+              "default": "10s",
+              "description": "The maximum allowable duration between retries (random). The period is specified as a string with a number and a unit, e.g. 10ms, 1s, 1m, 1h. The supported units are 'ms', 's', 'm', 'h'."
+            }
+          }
+        }
+      }
+    },
     "traffic_shaping_header_rule": {
       "type": "object",
       "description": "The configuration for all subgraphs. The configuration is used to configure the traffic shaping for all subgraphs.",
