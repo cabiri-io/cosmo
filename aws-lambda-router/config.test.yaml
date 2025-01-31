@@ -3,11 +3,10 @@
 version: '1'
 
 authentication:
-  providers:
-    - name: Test Auth Service
-      jwks:
+  jwt:
+    jwks:
+      - url: https://www.googleapis.com/oauth2/v3/certs
         # Example JWKS - Google OIDC
-        url: https://www.googleapis.com/oauth2/v3/certs
         refresh_interval: 5m
 headers:
   all:
