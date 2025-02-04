@@ -2,15 +2,17 @@ package graphiql
 
 import (
 	"bytes"
-	"golang.org/x/sync/semaphore"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"golang.org/x/sync/semaphore"
 )
 
 type PlaygroundOptions struct {
 	Html             string
 	GraphqlURL       string
+	PlaygroundPath   string
 	ConcurrencyLimit int64
 }
 
@@ -43,6 +45,7 @@ func NewPlayground(opts *PlaygroundOptions) func(http.Handler) http.Handler {
 
 func (p *Playground) initPlayground() {
 	tpl := strings.Replace(p.opts.Html, "{{graphqlURL}}", p.opts.GraphqlURL, -1)
+	tpl = strings.Replace(tpl, "{{playgroundPath}}", p.opts.PlaygroundPath, -1)
 	play := []byte(tpl)
 	p.templateBytes = play
 }
