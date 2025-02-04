@@ -24258,7 +24258,7 @@ snapshots:
       '@next/env': 14.2.21
       '@swc/helpers': 0.5.5
       busboy: 1.6.0
-      caniuse-lite: 1.0.30001686
+      caniuse-lite: 1.0.30001696
       graceful-fs: 4.2.11
       postcss: 8.4.31
       react: 18.3.1
