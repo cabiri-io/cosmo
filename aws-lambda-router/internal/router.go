@@ -89,6 +89,7 @@ func NewRouter(opts ...Option) (*core.Router, error) {
 			core.WithGraphQLPath(cfg.GraphQLPath),
 			core.WithModulesConfig(cfg.Modules),
 			core.WithGracePeriod(cfg.GracePeriod),
+			core.WithPlaygroundConfig(cfg.PlaygroundConfig),
 			core.WithPlaygroundPath(cfg.PlaygroundPath),
 			core.WithHealthCheckPath(cfg.HealthCheckPath),
 			core.WithLivenessCheckPath(cfg.LivenessCheckPath),
