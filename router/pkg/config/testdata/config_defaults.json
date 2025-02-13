@@ -19,7 +19,8 @@
         "Jaeger": false,
         "B3": false,
         "Baggage": false,
-        "Datadog": false
+        "Datadog": false,
+        "Xray": false
       },
       "ResponseTraceHeader": {
         "Enabled": false,
