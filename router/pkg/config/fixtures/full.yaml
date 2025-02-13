@@ -89,6 +89,7 @@ telemetry:
       # https://github.com/openzipkin/b3-propagation (zipkin)
       b3: false
       datadog: true
+      xray: false
     exporters:
       # If no exporters are defined, the default one is used
       - exporter: http # or grpc

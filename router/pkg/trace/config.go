@@ -20,6 +20,7 @@ const (
 	PropagatorJaeger       Propagator = "jaeger"
 	PropagatorBaggage      Propagator = "baggage"
 	PropagatorDatadog      Propagator = "datadog"
+	PropagatorXRay         Propagator = "xray"
 
 	DefaultBatchTimeout  = 10 * time.Second
 	DefaultExportTimeout = 30 * time.Second

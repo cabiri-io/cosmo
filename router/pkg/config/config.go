@@ -82,6 +82,7 @@ type PropagationConfig struct {
 	B3           bool `yaml:"b3"`
 	Baggage      bool `yaml:"baggage"`
 	Datadog      bool `yaml:"datadog"`
+	XRay         bool `yaml:"xray"`
 }
 
 type EngineStats struct {
