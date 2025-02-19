@@ -58,7 +58,8 @@ func createExporter(log *zap.Logger, exp *ExporterConfig) (sdktrace.SpanExporter
 	case otelconfig.ExporterOLTPHTTP:
 		opts := []otlptracehttp.Option{
 			// Includes host and port
-			otlptracehttp.WithEndpoint(u.Host),
+			//otlptracehttp.WithEndpoint(u.Host),
+			otlptracehttp.WithEndpoint("localhost:4318"),
 			otlptracehttp.WithCompression(otlptracehttp.GzipCompression),
 		}
 
