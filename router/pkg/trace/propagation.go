@@ -3,6 +3,7 @@ package trace
 import (
 	"fmt"
 	datadog "github.com/tonglil/opentelemetry-go-datadog-propagator"
+	"go.opentelemetry.io/contrib/propagators/aws/xray"
 	"go.opentelemetry.io/contrib/propagators/b3"
 	"go.opentelemetry.io/contrib/propagators/jaeger"
 	"go.opentelemetry.io/otel/propagation"
@@ -22,6 +23,8 @@ func BuildPropagators(propagators ...Propagator) ([]propagation.TextMapPropagato
 			allPropagators = append(allPropagators, datadog.Propagator{})
 		case PropagatorBaggage:
 			allPropagators = append(allPropagators, propagation.Baggage{})
+		case PropagatorXRay:
+			allPropagators = append(allPropagators, xray.Propagator{})
 		default:
 			return nil, fmt.Errorf("unknown trace propagator: %s", p)
 		}

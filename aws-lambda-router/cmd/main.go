@@ -24,7 +24,7 @@ const (
 )
 
 var (
-	defaultSampleRate = 0.2 // 20% of requests will be sampled
+	defaultSampleRate = os.Getenv("TRACING_SAMPLING_RATE") // previously `0.2 // 20% of requests will be sampled`
 	enableTelemetry   = os.Getenv("DISABLE_TELEMETRY") != "true"
 	devMode           = os.Getenv("DEV_MODE") == "true"
 	stage             = os.Getenv("STAGE")
